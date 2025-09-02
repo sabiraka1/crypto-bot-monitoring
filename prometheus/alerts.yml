@@ -1,5 +1,6 @@
 ﻿groups:
 - name: trading_critical
+  interval: 30s
   rules:
   - alert: TradingSystemDown
     expr: up{job="crypto-ai-bot"} == 0
@@ -7,14 +8,76 @@
     labels:
       severity: critical
     annotations:
-      summary: "Trading system is down"
-      description: "The crypto bot has been down for more than 1 minute"
+      summary: "Trading system is DOWN! 🚨"
+      description: "Crypto bot не отвечает больше 1 минуты. Требуется немедленное вмешательство!"
   
+  - alert: HighErrorRate
+    expr: rate(http_requests_total{job="crypto-ai-bot",code=~"5.."}[5m]) > 0.05
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Критический уровень ошибок"
+      description: "Более 5% запросов завершаются ошибкой 5xx за последние 5 минут"
+
+- name: trading_warnings
+  interval: 30s
+  rules:
   - alert: HighMemoryUsage
-    expr: (process_resident_memory_bytes / 1024 / 1024) > 512
+    expr: (process_resident_memory_bytes{job="crypto-ai-bot"} / 1024 / 1024) > 512
     for: 5m
     labels:
       severity: warning
     annotations:
-      summary: "High memory usage"
-      description: "Memory usage is above 512MB"
+      summary: "Высокое использование памяти"
+      description: "Использование памяти превышает 512MB (текущее: {{ $value | humanize }}MB)"
+  
+  - alert: HighLatency
+    expr: histogram_quantile(0.95, rate(http_request_latency_seconds_bucket{job="crypto-ai-bot"}[5m])) > 2
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Высокая задержка ответов"
+      description: "95% запросов выполняются дольше 2 секунд"
+  
+  - alert: LowDiskSpace
+    expr: (node_filesystem_avail_bytes{job="crypto-ai-bot"} / node_filesystem_size_bytes{job="crypto-ai-bot"}) < 0.1
+    for: 5m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Мало свободного места на диске"
+      description: "Осталось менее 10% свободного места"
+
+- name: telegram_webhook_issues
+  interval: 30s
+  rules:
+  - alert: TelegramWebhookErrors
+    expr: rate(http_requests_total{job="crypto-ai-bot",path="/telegram",code="404"}[5m]) > 0.1
+    for: 10m
+    labels:
+      severity: info
+    annotations:
+      summary: "Telegram пытается отправить webhook"
+      description: "Обнаружены попытки Telegram отправить webhook на несуществующий endpoint"
+
+- name: trading_performance
+  interval: 60s
+  rules:
+  - alert: NoRecentRequests
+    expr: rate(http_requests_total{job="crypto-ai-bot"}[10m]) == 0
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Нет активности"
+      description: "Бот не получал запросов последние 10 минут"
+  
+  - alert: ServiceRestarted
+    expr: changes(process_start_time_seconds{job="crypto-ai-bot"}[5m]) > 0
+    labels:
+      severity: info
+    annotations:
+      summary: "Сервис был перезапущен"
+      description: "Обнаружен перезапуск crypto-ai-bot"
