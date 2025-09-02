@@ -2,29 +2,13 @@
   resolve_timeout: 5m
 
 route:
-  receiver: telegram
-  group_by: ['alertname', 'severity']
+  group_by: ['alertname']
   group_wait: 10s
   group_interval: 30s
   repeat_interval: 1h
-  routes:
-    - match:
-        severity: critical
-      receiver: telegram
-      repeat_interval: 15m
+  receiver: 'web.hook'
 
 receivers:
-  - name: telegram
-    telegram_configs:
-      - bot_token: 'TELEGRAM_BOT_TOKEN_PLACEHOLDER'
-        chat_id: TELEGRAM_CHAT_ID_PLACEHOLDER
-        parse_mode: HTML
-        message: |
-          🚨 <b>{{ .GroupLabels.alertname }}</b>
-          Severity: {{ .GroupLabels.severity }}
-          
-          {{ range .Alerts }}
-          📊 {{ .Annotations.summary }}
-          {{ .Annotations.description }}
-          Status: {{ .Status }}
-          {{ end }}
+- name: 'web.hook'
+  webhook_configs:
+  - url: 'http://127.0.0.1:5001/'
