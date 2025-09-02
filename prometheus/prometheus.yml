@@ -1,5 +1,5 @@
 ﻿# В папке crypto-bot-monitoring
-@'
+$content = @'
 global:
   scrape_interval: 30s
   evaluation_interval: 30s
@@ -16,9 +16,11 @@ scrape_configs:
         labels:
           app: 'crypto-ai-bot'
           environment: 'production'
-'@ | Out-File -FilePath prometheus/prometheus.yml -Encoding UTF8
+'@
 
-# Коммит и пуш
+# Сохраняем без BOM
+[System.IO.File]::WriteAllText("prometheus\prometheus.yml", $content)
+
 git add prometheus/prometheus.yml
-git commit -m "Update prometheus config to use public URL"
+git commit -m "Fix prometheus.yml encoding"
 git push
