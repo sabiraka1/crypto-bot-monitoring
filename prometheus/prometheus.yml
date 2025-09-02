@@ -1,4 +1,6 @@
-﻿global:
+﻿# В папке crypto-bot-monitoring
+@'
+global:
   scrape_interval: 30s
   evaluation_interval: 30s
 
@@ -14,3 +16,9 @@ scrape_configs:
         labels:
           app: 'crypto-ai-bot'
           environment: 'production'
+'@ | Out-File -FilePath prometheus/prometheus.yml -Encoding UTF8
+
+# Коммит и пуш
+git add prometheus/prometheus.yml
+git commit -m "Update prometheus config to use public URL"
+git push
