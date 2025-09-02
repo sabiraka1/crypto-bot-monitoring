@@ -2,11 +2,14 @@
   resolve_timeout: 5m
 
 route:
-  receiver: default
+  receiver: telegram-alerts
   group_by: ['alertname','severity']
   group_wait: 10s
   group_interval: 30s
-  repeat_interval: 4h
+  repeat_interval: 1h
 
 receivers:
-  - name: default
+  - name: telegram-alerts
+    webhook_configs:
+      - url: 'http://telegram-webhook:9090/alert'
+        send_resolved: true
