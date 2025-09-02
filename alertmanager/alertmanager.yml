@@ -2,13 +2,14 @@
   resolve_timeout: 5m
 
 route:
-  group_by: ['alertname']
+  group_by: ['alertname', 'severity']
   group_wait: 10s
   group_interval: 30s
   repeat_interval: 1h
-  receiver: 'web.hook'
+  receiver: 'webhook-test'
 
 receivers:
-- name: 'web.hook'
+- name: 'webhook-test'
   webhook_configs:
-  - url: 'http://127.0.0.1:5001/'
+  - url: 'https://webhook.site/0b5eb57a-1ce2-49dd-b5ef-f9fe637ba37e'
+    send_resolved: true
