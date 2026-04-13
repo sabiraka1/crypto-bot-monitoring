@@ -1,15 +1,19 @@
-﻿global:
+global:
   resolve_timeout: 5m
 
 route:
+  receiver: telegram-alerts
   group_by: ['alertname', 'severity']
   group_wait: 10s
   group_interval: 30s
   repeat_interval: 1h
-  receiver: 'webhook-test'
 
 receivers:
-- name: 'webhook-test'
-  webhook_configs:
-  - url: 'https://webhook.site/0b5eb57a-1ce2-49dd-b5ef-f9fe637ba37e'
-    send_resolved: true
+  - name: telegram-alerts
+    telegram_configs:
+      # entrypoint.sh substitutes these placeholders at container start
+      # from TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID Railway env vars.
+      - bot_token: 'TELEGRAM_BOT_TOKEN_PLACEHOLDER'
+        chat_id: TELEGRAM_CHAT_ID_PLACEHOLDER
+        send_resolved: true
+        parse_mode: 'Markdown'
