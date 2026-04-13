@@ -2,6 +2,13 @@
   scrape_interval: 30s
   evaluation_interval: 30s
 
+# Forward firing alerts to Alertmanager (Railway internal DNS).
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - 'crypto-bot-monitoring-263377b1.railway.internal:9093'
+
 rule_files:
   - /etc/prometheus/alerts.yml
 
