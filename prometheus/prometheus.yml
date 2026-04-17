@@ -17,7 +17,7 @@ scrape_configs:
     metrics_path: /metrics
     scrape_interval: 30s
     static_configs:
-      - targets: ['crypto-ai-bot.railway.internal:8000']
+      - targets: ['crypto-ai-bot.railway.internal:8080']
         labels:
           app: 'crypto-ai-bot'
           environment: 'production'
