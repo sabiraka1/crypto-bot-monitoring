@@ -3,13 +3,16 @@
   interval: 30s
   rules:
   - alert: TradingSystemDown
+    # 5-минутное окно: redeploy на Railway занимает 1-2 минуты, hook
+    # перестартует Prometheus scrape до того как Uvicorn снова отвечает.
+    # Для реального падения бота 5 мин — всё ещё разумное время реакции.
     expr: up{job="crypto-ai-bot"} == 0
-    for: 1m
+    for: 5m
     labels:
       severity: critical
     annotations:
       summary: "Trading system is DOWN! 🚨"
-      description: "Crypto bot не отвечает больше 1 минуты. Требуется немедленное вмешательство!"
+      description: "Crypto bot не отвечает больше 5 минут. Требуется немедленное вмешательство!"
   
   - alert: HighErrorRate
     expr: rate(http_requests_total{job="crypto-ai-bot",code=~"5.."}[5m]) > 0.05
