@@ -2,7 +2,7 @@
   "uid": "crypto-signal-quality",
   "title": "Crypto Bot — Signal Quality",
   "schemaVersion": 38,
-  "version": 1,
+  "version": 2,
   "refresh": "30s",
   "time": {"from": "now-24h", "to": "now"},
   "panels": [
@@ -42,6 +42,44 @@
       "gridPos": {"x": 0, "y": 18, "w": 24, "h": 6},
       "targets": [
         {"expr": "sum by (zone, reason) (rate(ai_gate_blocked_total[10m])) * 600", "legendFormat": "{{zone}} / {{reason}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 5,
+      "type": "heatmap",
+      "title": "Fusion score distribution (post-gate)",
+      "gridPos": {"x": 0, "y": 24, "w": 12, "h": 10},
+      "targets": [
+        {"expr": "sum by (le) (rate(fusion_score_bucket[15m]))", "format": "heatmap", "refId": "A"}
+      ],
+      "options": {"calculate": false}
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Tech vs AI median per zone",
+      "gridPos": {"x": 12, "y": 24, "w": 12, "h": 10},
+      "targets": [
+        {"expr": "histogram_quantile(0.5, sum by (zone, le) (rate(tech_score_bucket[30m])))", "legendFormat": "tech p50 {{zone}}", "refId": "A"},
+        {"expr": "histogram_quantile(0.5, sum by (zone, le) (rate(ai_score_bucket[30m])))", "legendFormat": "ai p50 {{zone}}", "refId": "B"}
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Actions per zone (buy / sell / hold / blocked / skip)",
+      "gridPos": {"x": 0, "y": 34, "w": 24, "h": 8},
+      "targets": [
+        {"expr": "sum by (zone, action) (rate(eval_action_by_zone_total[10m])) * 600", "legendFormat": "{{zone}} / {{action}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Funnel block stages (10m rate)",
+      "gridPos": {"x": 0, "y": 42, "w": 24, "h": 7},
+      "targets": [
+        {"expr": "sum by (stage) (rate(funnel_block_total[10m])) * 600", "legendFormat": "{{stage}}", "refId": "A"}
       ]
     }
   ]

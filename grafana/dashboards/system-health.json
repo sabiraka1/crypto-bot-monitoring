@@ -2,7 +2,7 @@
   "uid": "crypto-system-health",
   "title": "Crypto Bot — System Health",
   "schemaVersion": 38,
-  "version": 1,
+  "version": 2,
   "refresh": "30s",
   "time": {"from": "now-1h", "to": "now"},
   "panels": [
@@ -60,6 +60,83 @@
       "gridPos": {"x": 12, "y": 4, "w": 12, "h": 8},
       "targets": [
         {"expr": "increase(log_warnings_total{event=\"slow_query\"}[5m])", "legendFormat": "slow_query", "refId": "A"}
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Eval loop latency p50 / p95 / p99 (ms)",
+      "gridPos": {"x": 0, "y": 12, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.5, sum by (le) (rate(eval_latency_ms_bucket[5m])))", "legendFormat": "p50", "refId": "A"},
+        {"expr": "histogram_quantile(0.95, sum by (le) (rate(eval_latency_ms_bucket[5m])))", "legendFormat": "p95", "refId": "B"},
+        {"expr": "histogram_quantile(0.99, sum by (le) (rate(eval_latency_ms_bucket[5m])))", "legendFormat": "p99", "refId": "C"}
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Broker trade-execution p95 (ms)",
+      "gridPos": {"x": 12, "y": 12, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.95, sum by (le) (rate(trade_execution_time_bucket[5m])))", "legendFormat": "p95 exec", "refId": "A"},
+        {"expr": "histogram_quantile(0.5, sum by (le) (rate(trade_execution_time_bucket[5m])))", "legendFormat": "p50 exec", "refId": "B"}
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Trade outcomes (executed vs errored, 5m rate)",
+      "gridPos": {"x": 0, "y": 20, "w": 12, "h": 7},
+      "targets": [
+        {"expr": "sum by (result) (rate(trades_count_total[5m])) * 300", "legendFormat": "{{result}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Market-data updater errors / no-data (15m)",
+      "gridPos": {"x": 12, "y": 20, "w": 12, "h": 7},
+      "targets": [
+        {"expr": "sum by (timeframe) (increase(market_data_update_error_total[15m]))", "legendFormat": "err {{timeframe}}", "refId": "A"},
+        {"expr": "sum by (symbol, timeframe) (increase(market_data_no_data_total[15m]))", "legendFormat": "no_data {{symbol}}/{{timeframe}}", "refId": "B"}
+      ]
+    },
+    {
+      "id": 11,
+      "type": "stat",
+      "title": "Idempotency locks acquired (15m)",
+      "gridPos": {"x": 0, "y": 27, "w": 6, "h": 5},
+      "targets": [
+        {"expr": "sum(increase(locks_acquire_attempts_total[15m]))", "refId": "A"}
+      ]
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "Lock conflicts (15m)",
+      "gridPos": {"x": 6, "y": 27, "w": 6, "h": 5},
+      "targets": [
+        {"expr": "sum(increase(locks_conflicts_total[15m]))", "refId": "A"}
+      ],
+      "fieldConfig": {"defaults": {"color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}}}
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "HTTP requests / min",
+      "gridPos": {"x": 12, "y": 27, "w": 6, "h": 5},
+      "targets": [
+        {"expr": "sum(rate(http_requests_total[5m])) * 60", "refId": "A"}
+      ]
+    },
+    {
+      "id": 14,
+      "type": "stat",
+      "title": "HTTP rate-limited (15m)",
+      "gridPos": {"x": 18, "y": 27, "w": 6, "h": 5},
+      "targets": [
+        {"expr": "sum(increase(http_rate_limited_total[15m]))", "refId": "A"}
       ]
     }
   ]

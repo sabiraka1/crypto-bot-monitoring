@@ -2,7 +2,7 @@
   "uid": "crypto-exits",
   "title": "Crypto Bot — Exits & Lifetimes",
   "schemaVersion": 38,
-  "version": 1,
+  "version": 2,
   "refresh": "30s",
   "time": {"from": "now-24h", "to": "now"},
   "panels": [
@@ -38,11 +38,68 @@
     {
       "id": 4,
       "type": "timeseries",
-      "title": "Median lifetime per zone (p50)",
+      "title": "Median lifetime per zone (p50 / p95)",
       "gridPos": {"x": 0, "y": 18, "w": 24, "h": 8},
       "targets": [
         {"expr": "histogram_quantile(0.5, sum by (zone, le) (rate(position_lifetime_bars_bucket[6h])))", "legendFormat": "p50 {{zone}}", "refId": "A"},
         {"expr": "histogram_quantile(0.95, sum by (zone, le) (rate(position_lifetime_bars_bucket[6h])))", "legendFormat": "p95 {{zone}}", "refId": "B"}
+      ]
+    },
+    {
+      "id": 5,
+      "type": "bargauge",
+      "title": "TP hits by level (last 24h)",
+      "gridPos": {"x": 0, "y": 26, "w": 12, "h": 7},
+      "targets": [
+        {"expr": "sum by (level) (increase(exits_tp_reached_total[24h]))", "legendFormat": "TP{{level}}", "refId": "A"}
+      ],
+      "options": {"orientation": "horizontal"}
+    },
+    {
+      "id": 6,
+      "type": "bargauge",
+      "title": "Stop-loss triggers by type (last 24h)",
+      "gridPos": {"x": 12, "y": 26, "w": 12, "h": 7},
+      "targets": [
+        {"expr": "sum by (type) (increase(exits_stop_triggered_total[24h]))", "legendFormat": "{{type}}", "refId": "A"}
+      ],
+      "options": {"orientation": "horizontal"}
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Zone transitions (upgrade vs downgrade, 1h rate)",
+      "gridPos": {"x": 0, "y": 33, "w": 24, "h": 8},
+      "targets": [
+        {"expr": "sum by (transition) (rate(exits_zone_upgrade_total[1h])) * 3600", "legendFormat": "upgrade {{transition}}", "refId": "A"},
+        {"expr": "-sum by (transition) (rate(exits_zone_downgrade_total[1h])) * 3600", "legendFormat": "downgrade {{transition}}", "refId": "B"}
+      ]
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "Breakeven SL-moves (24h)",
+      "gridPos": {"x": 0, "y": 41, "w": 8, "h": 5},
+      "targets": [
+        {"expr": "sum(increase(exits_breakeven_set_total[24h]))", "refId": "A"}
+      ]
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "Partial zone-downgrade exits (24h)",
+      "gridPos": {"x": 8, "y": 41, "w": 8, "h": 5},
+      "targets": [
+        {"expr": "sum(increase(exits_zone_partial_total[24h]))", "refId": "A"}
+      ]
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "Positions monitored (live)",
+      "gridPos": {"x": 16, "y": 41, "w": 8, "h": 5},
+      "targets": [
+        {"expr": "count(protective_exits_position_pnl)", "refId": "A"}
       ]
     }
   ]
