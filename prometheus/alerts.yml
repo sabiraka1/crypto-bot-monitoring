@@ -50,30 +50,23 @@
       summary: "Мало свободного места на диске"
       description: "Осталось менее 10% свободного места"
 
-- name: telegram_webhook_issues
-  interval: 30s
-  rules:
-  - alert: TelegramWebhookErrors
-    expr: rate(http_requests_total{job="crypto-ai-bot",path="/telegram",code="404"}[5m]) > 0.1
-    for: 10m
-    labels:
-      severity: info
-    annotations:
-      summary: "Telegram пытается отправить webhook"
-      description: "Обнаружены попытки Telegram отправить webhook на несуществующий endpoint"
-
 - name: trading_performance
   interval: 60s
   rules:
-  - alert: NoRecentRequests
-    expr: rate(http_requests_total{job="crypto-ai-bot"}[10m]) == 0
+  # `NoRecentRequests` removed: the bot is a headless worker — it never
+  # serves HTTP traffic from humans, so this alert was permanently firing
+  # and driving the hourly Telegram spam.
+  # `TelegramWebhookErrors` removed: the bot does not expose /telegram
+  # webhook endpoint, the check was meaningless.
+  - alert: NoEvaluationCycles
+    expr: rate(evaluation_cycles_total{job="crypto-ai-bot"}[15m]) == 0
     for: 10m
     labels:
       severity: warning
     annotations:
-      summary: "Нет активности"
-      description: "Бот не получал запросов последние 10 минут"
-  
+      summary: "Нет циклов оценки"
+      description: "evaluation_cycles_total не растёт 10 минут — orchestrator остановился"
+
   - alert: ServiceRestarted
     expr: changes(process_start_time_seconds{job="crypto-ai-bot"}[5m]) > 0
     labels:
@@ -81,3 +74,37 @@
     annotations:
       summary: "Сервис был перезапущен"
       description: "Обнаружен перезапуск crypto-ai-bot"
+
+- name: trading_signals
+  interval: 60s
+  rules:
+  - alert: BarAlignmentDesync
+    expr: increase(log_warnings_total{event="bar_alignment_desync"}[10m]) > 0
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "AI/tech desync detected"
+      description: "tech_last_bar_ts ≠ ai_last_bar_ts — closed-bar contract regression"
+
+  - alert: AIGateAlwaysBlocking
+    expr: |
+      sum by (zone) (rate(ai_gate_blocked_total[30m]))
+        / sum by (zone) (rate(evaluation_cycles_total[30m])) > 0.95
+    for: 30m
+    labels:
+      severity: warning
+    annotations:
+      summary: "AI блокирует >95% сигналов в зоне {{ $labels.zone }}"
+      description: "Зона {{ $labels.zone }} упирается в AI veto — проверить threshold или регресс модели"
+
+  - alert: ExitsDominatedByTimeout
+    expr: |
+      sum(increase(exit_reason_by_zone_total{reason="timeout"}[6h]))
+        / sum(increase(exit_reason_by_zone_total[6h])) > 0.70
+    for: 1h
+    labels:
+      severity: warning
+    annotations:
+      summary: "Больше 70% позиций закрываются по timeout"
+      description: "Профиль выхода не ловит ни TP ни SL — сигнал что SL/TP/trailing требуют перекалибровки"

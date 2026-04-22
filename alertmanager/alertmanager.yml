@@ -6,7 +6,9 @@ route:
   group_by: ['alertname', 'severity']
   group_wait: 10s
   group_interval: 30s
-  repeat_interval: 1h
+  # 6h repeat: hourly was too aggressive for a headless worker where a few
+  # warning-level alerts can stay active indefinitely (e.g. memory headroom).
+  repeat_interval: 6h
 
 receivers:
   - name: telegram-alerts

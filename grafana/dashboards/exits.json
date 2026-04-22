@@ -1,0 +1,49 @@
+{
+  "uid": "crypto-exits",
+  "title": "Crypto Bot — Exits & Lifetimes",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "30s",
+  "time": {"from": "now-24h", "to": "now"},
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Exit reasons per zone (1h rate)",
+      "gridPos": {"x": 0, "y": 0, "w": 24, "h": 10},
+      "targets": [
+        {"expr": "sum by (zone, reason) (rate(exit_reason_by_zone_total[1h])) * 3600", "legendFormat": "{{zone}} / {{reason}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 2,
+      "type": "bargauge",
+      "title": "Exit reason share (last 24h)",
+      "gridPos": {"x": 0, "y": 10, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum by (reason) (increase(exit_reason_by_zone_total[24h]))", "legendFormat": "{{reason}}", "refId": "A"}
+      ],
+      "options": {"orientation": "horizontal"}
+    },
+    {
+      "id": 3,
+      "type": "heatmap",
+      "title": "Position lifetime (15m bars) — all zones",
+      "gridPos": {"x": 12, "y": 10, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum by (le) (rate(position_lifetime_bars_bucket[1h]))", "format": "heatmap", "refId": "A"}
+      ],
+      "options": {"calculate": false}
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Median lifetime per zone (p50)",
+      "gridPos": {"x": 0, "y": 18, "w": 24, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.5, sum by (zone, le) (rate(position_lifetime_bars_bucket[6h])))", "legendFormat": "p50 {{zone}}", "refId": "A"},
+        {"expr": "histogram_quantile(0.95, sum by (zone, le) (rate(position_lifetime_bars_bucket[6h])))", "legendFormat": "p95 {{zone}}", "refId": "B"}
+      ]
+    }
+  ]
+}

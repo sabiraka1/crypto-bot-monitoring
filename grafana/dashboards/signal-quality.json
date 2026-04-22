@@ -1,0 +1,48 @@
+{
+  "uid": "crypto-signal-quality",
+  "title": "Crypto Bot — Signal Quality",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "30s",
+  "time": {"from": "now-24h", "to": "now"},
+  "panels": [
+    {
+      "id": 1,
+      "type": "heatmap",
+      "title": "AI score distribution (all zones)",
+      "gridPos": {"x": 0, "y": 0, "w": 12, "h": 10},
+      "targets": [
+        {"expr": "sum by (le) (rate(ai_score_histogram_bucket[15m]))", "format": "heatmap", "refId": "A"}
+      ],
+      "options": {"calculate": false}
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Median AI score per zone (p50)",
+      "gridPos": {"x": 12, "y": 0, "w": 12, "h": 10},
+      "targets": [
+        {"expr": "histogram_quantile(0.5, sum by (zone, le) (rate(ai_score_histogram_bucket[30m])))", "legendFormat": "{{zone}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Confidence multiplier p50 / p95 per zone",
+      "gridPos": {"x": 0, "y": 10, "w": 24, "h": 8},
+      "targets": [
+        {"expr": "histogram_quantile(0.5, sum by (zone, le) (rate(confidence_multiplier_bucket[30m])))", "legendFormat": "p50 {{zone}}", "refId": "A"},
+        {"expr": "histogram_quantile(0.95, sum by (zone, le) (rate(confidence_multiplier_bucket[30m])))", "legendFormat": "p95 {{zone}}", "refId": "B"}
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "AI gate blocked reasons (10m rate)",
+      "gridPos": {"x": 0, "y": 18, "w": 24, "h": 6},
+      "targets": [
+        {"expr": "sum by (zone, reason) (rate(ai_gate_blocked_total[10m])) * 600", "legendFormat": "{{zone}} / {{reason}}", "refId": "A"}
+      ]
+    }
+  ]
+}

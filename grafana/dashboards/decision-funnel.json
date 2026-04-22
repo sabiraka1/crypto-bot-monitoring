@@ -1,0 +1,49 @@
+{
+  "uid": "crypto-decision-funnel",
+  "title": "Crypto Bot — Decision Funnel",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "30s",
+  "time": {"from": "now-6h", "to": "now"},
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Evaluation cycles / 5m",
+      "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum by (symbol) (rate(evaluation_cycles_total[5m])) * 300", "legendFormat": "{{symbol}}", "refId": "A"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "short"}}
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Pattern fire rate by pattern/zone (per 10m)",
+      "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+      "targets": [
+        {"expr": "sum by (pattern, zone) (rate(pattern_fire_rate_total[10m])) * 600", "legendFormat": "{{pattern}} / {{zone}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "AI gate block rate (30m)",
+      "gridPos": {"x": 0, "y": 8, "w": 12, "h": 6},
+      "targets": [
+        {"expr": "sum by (zone) (rate(ai_gate_blocked_total[30m])) / sum by (zone) (rate(evaluation_cycles_total[30m]))", "legendFormat": "{{zone}}", "refId": "A"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "percentunit", "min": 0, "max": 1}}
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Trade verdicts (executed vs blocked)",
+      "gridPos": {"x": 12, "y": 8, "w": 12, "h": 6},
+      "targets": [
+        {"expr": "sum(rate(trades_count_total{result=\"success\"}[15m])) * 900", "legendFormat": "executed", "refId": "A"},
+        {"expr": "sum(rate(trades_count_total{result=\"error\"}[15m])) * 900", "legendFormat": "errored", "refId": "B"}
+      ]
+    }
+  ]
+}
